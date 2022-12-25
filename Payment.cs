@@ -4,10 +4,15 @@ namespace OnlineShopping {
     string cardNumber, pinCode;
     double balance;
     Address billingAddress;
+    const double EPS = 1e-9;
     public Payment(string cardNumber, string pinCode) {
       this.cardNumber = cardNumber;
       this.pinCode = pinCode;
       billingAddress = new Address("king abdulla street", "Irbid", "174560", "Palastine");
+    }
+    
+    public bool viewStatus(double amount) {
+      return (balance - amount) >= EPS;
     }
 
     public double Balance {
