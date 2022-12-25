@@ -130,4 +130,108 @@ namespace OnlineShopping {
       }
     }
   }
+
+  [Serializable]
+  class Seller : Person {
+    string storeName;
+    List<Listing> Listings = new List<Listing>();
+    static List<Listing> AllListings = new List<Listing>();
+    Account myAccount;
+
+    public Seller(string storeName, string name, string email, string phoneNumber, string password, string accountType, string street, string city, string postalCode, string country) : base(name) {
+      this.storeName = storeName;
+      myAccount = new Account(email, phoneNumber, password, accountType, street, city, postalCode, country);
+    }
+    
+    int searchForListing(Listing x) {
+      for (int i = 0; i < Listings.Count; i++) {
+        if (x == Listings[i]) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
+    public void AddListing(Listing x) {
+      Listings.Add(x);
+      AllListings.Add(x);
+    }
+
+    public void RemoveListing(Listing x) {
+      if (searchForListing(x) != -1) {
+        Listings.Remove(x);
+        AllListings.Remove(x);
+      }
+    }
+
+    public void UpdateListingInfo(Listing x) {
+      int index = searchForListing(x);
+      if (index < 0) {
+        Console.WriteLine("Listing Not Found");
+        return;
+      }
+      Console.WriteLine("Please enter what to update");
+      Interface.choiceScreen(new string[] {"Name", "Description", "Number Of Items", "Price"});
+      int choice = Interface.getChoice(1, 4);
+      Console.WriteLine("Enter new Data");
+      string? data = Console.ReadLine();
+      switch(choice) {
+        case 1:
+          Listings[index].Name = data!;
+          break;
+        case 2:
+          Listings[index].Description = data!;
+          break;
+        case 3:
+          Listings[index].NumberOfItems = Convert.ToInt32(data);
+          break;
+        case 4:
+          Listings[index].Price = Convert.ToInt32(data);
+          break;
+      }
+    }
+
+    public void ViewSellerListings() {
+      for (int i = 0; i < Listings.Count; i++) {
+        Console.WriteLine((i + 1).ToString() + "." + Listings[i].Name + " $" + Listings[i].Price.ToString());
+      }
+    }
+
+    public static void ViewAllListings() {
+      for (int i = 0; i < AllListings.Count; i++) {
+        Console.WriteLine((i + 1).ToString() + "." + AllListings[i].Name + " $" + AllListings[i].Price.ToString() + " " + AllListings[i].CurSeller.Name);
+      }
+    }
+  }
+
+  [Serializable]
+  class Buyer : Person {
+    string id;
+    Account myAccount;
+    Payment paymentInfo;
+    Cart myCart;
+    Buyer(string id, string name, string email, string phoneNumber, string password, string accountType, string street, string city, string postalCode, string country) : base(name) {
+      this.id = id;
+      myAccount = new Account(email, phoneNumber, password, accountType, street, city, postalCode, country);
+      myCart = new Cart(id);
+      paymentInfo = new Payment("12332421", "3211");
+    }
+  
+    // just like a black box we call a cart functions
+    public void AddToCart(Listing x) {
+      myCart.AddToCart(x);
+    }
+
+    public void RemoveFromCart(Listing x) {
+      myCart.RemoveFromCart(x);
+    }
+
+    public void ViewMyCart() {
+      myCart.ViewCartInfo();
+    }
+
+    public static void ViewAllListings() {
+      Seller.ViewAllListings();
+    }
+  }
 }
