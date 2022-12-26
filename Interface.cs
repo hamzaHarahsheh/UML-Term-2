@@ -20,11 +20,11 @@ namespace OnlineShopping {
     }
 
     public static void BuyerHomePage() {
-
+      //waiting for signUp page
     }
 
     public static void SellerHomePage() {
-
+      // waiting for logIn Page
     }
 
     public static void Main() {
