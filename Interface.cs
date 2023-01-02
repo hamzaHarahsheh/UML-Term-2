@@ -21,7 +21,6 @@ namespace OnlineShopping {
       return choice;
     }
 
-
     public static void SaveUser(Person person) {
       FileStream fs = new FileStream("SystemUsers.txt", FileMode.Append, FileAccess.Write);
       BinaryFormatter bf = new BinaryFormatter();
@@ -89,6 +88,42 @@ namespace OnlineShopping {
       }
       fs.Close();
       return list;
+    }
+
+    public static void LogInPage() {
+      int numberOfTries = 0;
+      Person user = new Person("NULL");
+      while (numberOfTries < 3) {
+        Console.WriteLine("Enter Your Email!");
+        string email = Console.ReadLine();
+        Console.WriteLine("Enter Your Password!");
+        string pass = Console.ReadLine();
+        user = GetUser(email, pass);
+        if (user.Name != "NULL") {
+          break;
+        }
+        Console.WriteLine("You have " + (3 - ++numberOfTries).ToString() + " Tries Left");
+      }
+      if (user.Name == "NULL") {
+        Console.WriteLine("Try again in 10 minutes");
+        return;
+      }
+      
+      if (user is Seller) {
+        SellerHomePage();
+      } else {
+        BuyerHomePage();
+      }
+      // NEED TO LOAD INFO FROM FILE
+      // NEED TO SAVE PERSON INTO FILE
+    }
+
+    
+    public static void BuyerHomePage() {
+
+    }
+
+    public static void SellerHomePage() {
 
     }
 
