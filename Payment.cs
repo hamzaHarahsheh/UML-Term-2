@@ -14,7 +14,11 @@ namespace OnlineShopping {
     public bool viewStatus(double amount) {
       return (balance - amount) >= EPS;
     }
-
+    
+    public void addToBalance(int ammount){
+      this.balance+=ammount;
+    }
+   
     public double Balance {
       set {
         balance = value;

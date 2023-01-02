@@ -21,6 +21,7 @@ namespace OnlineShopping {
       return choice;
     }
 
+
     public static void SaveUser(Person person) {
       FileStream fs = new FileStream("SystemUsers.txt", FileMode.Append, FileAccess.Write);
       BinaryFormatter bf = new BinaryFormatter();
@@ -88,6 +89,7 @@ namespace OnlineShopping {
       }
       fs.Close();
       return list;
+
     }
 
     public static void Main() {
