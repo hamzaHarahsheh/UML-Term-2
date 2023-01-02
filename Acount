@@ -98,7 +98,9 @@ namespace OnlineShopping {
     }
 
     public string AccountType {
-      // set should not be accessed
+      set{
+        accountType = value;
+      }
       get {
         return accountType;
       }
