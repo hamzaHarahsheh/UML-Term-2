@@ -89,7 +89,7 @@ namespace OnlineShopping {
       return cat;
     }
 
-    public static void LogInPage() {
+    public static void LogInPage(Catalog cat) {
       int numberOfTries = 0;
       Person user = new Person("NULL");
       while (numberOfTries < 3) {
@@ -109,12 +109,12 @@ namespace OnlineShopping {
       }
       
       if (user is Seller) {
-        SellerHomePage();
+        SellerHomePage((Seller)user, cat);
       } else {
-        BuyerHomePage();
+        BuyerHomePage((Buyer)user, cat);
       }
     }
-    public static void SignUpPage() {
+    public static void SignUpPage(Catalog cat) {
       choiceScreen(new string[] { "Signup as a Seller", "Signup as a Buyer" });
       int choice = getChoice(1, 2);
       Console.WriteLine("#Enter your name:");
@@ -136,7 +136,7 @@ namespace OnlineShopping {
         string storeName = Console.ReadLine();
         Seller user = new Seller(storeName, name, email, phoneNumber, password, "Seller", street, city, postalCode, country);
         SaveUser(user);
-        SellerHomePage();
+        SellerHomePage(user, cat);
       }
       else {
         Console.WriteLine("#Enter your card number:");
@@ -146,27 +146,103 @@ namespace OnlineShopping {
         const double balance = 100;
         Buyer user = new Buyer(name, email, phoneNumber, password, "Buyer", street, city, postalCode, country, cardNumber, pinCode);
         SaveUser(user);
-        BuyerHomePage();
-
+        BuyerHomePage(user, cat);
       }
     }
 
-    public static void BuyerHomePage() {
-      Console.WriteLine("HI BUYER");
+    public static void BuyerHomePage(Buyer user, Catalog cat) {
+      Console.WriteLine("HI BUYER: " + user.Name);
+      while(true) {
+        choiceScreen(new string[] {
+        "View all listings",
+        "View choosen listing info",
+        "View Cart",
+        "Checkout",
+        "Change account info",
+        "Search for listing",
+        "Exit"
+        });
+
+        int choice = getChoice(1, 7);
+        if(choice == 7) { 
+          break; 
+        }
+        switch (choice) {
+          case 1:
+            user.ViewAllListing(cat);
+            break;
+          case 2:
+            //TODO
+            break;
+          case 3:
+            user.ViewMyCart();
+            break;
+          case 4:
+            //TODO
+            break;
+          case 5:
+            user.UpdateAccountInfo(cat);
+            break;
+          case 6:
+            //TODO
+            break;
+        }
+      }
     }
 
-    public static void SellerHomePage() {
-      Console.WriteLine("HI SELLER");
+    public static void SellerHomePage(Seller user, Catalog cat) {
+      Console.WriteLine("HI Seller: " + user.Name);
+      while(true){
+        choiceScreen(new string[]{
+        "Add new listing",
+        "Delete existing listing",
+        "Update listing",
+        "View my listings",
+        "View all listings", 
+        "View sold listings info",
+        "Change account info",
+        "Logout"
+        });
+
+        int choice = getChoice(1, 8);
+        if(choice == 8){
+          break;
+        }
+        switch(choice){
+          case 1 : 
+            user.AddListing(cat);
+            break;
+          case 2 :
+            user.RemoveListing(cat);
+            break;
+          case 3 : 
+            user.UpdateListingInfo(cat);
+            break;
+          case 4 : 
+            user.ViewSellerListings();
+            break;
+          case 5 : 
+            user.ViewAllListing(cat);
+            break;
+          case 6 : 
+            //TODO
+            break;
+          case 7 : 
+            user.UpdateAccountInfo(cat);
+            break;
+        }
+      }
     }
 
     public static void Main() {
+      Catalog cat = new Catalog();
+      cat = LoadCatalog();
       choiceScreen(new string[] {"logIn", "SignUp"});
       int choice = getChoice(1, 2);
       if (choice == 1) {
-        LogInPage();
-        
+        LogInPage(cat);
       } else {
-        SignUpPage();
+        SignUpPage(cat);
       }
     }
   }
