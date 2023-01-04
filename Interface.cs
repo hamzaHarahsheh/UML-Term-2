@@ -21,10 +21,10 @@ namespace OnlineShopping {
       return choice;
     }
 
-    public static void SaveUser(Person person) {
+    public static void SaveUser(Person user) {
       FileStream fs = new FileStream("SystemUsers.txt", FileMode.Append, FileAccess.Write);
       BinaryFormatter bf = new BinaryFormatter();
-      bf.Serialize(fs, person);
+      bf.Serialize(fs, user);
       fs.Close();
     }
     
@@ -39,6 +39,39 @@ namespace OnlineShopping {
       }
       fs.Close();
       return list;
+    }
+
+    public static void SaveAllUsers(List<Person> x) {
+      FileStream fs = new FileStream("SystemUsers.txt", FileMode.Create, FileAccess.Write);
+      BinaryFormatter bf = new BinaryFormatter();
+      foreach(var i in x) {
+        bf.Serialize(fs, i);
+      }
+      fs.Close();
+    }
+
+    public static void UpdateUserFile(Person user) {
+      if (!File.Exists("SystemUsers.txt")) return;
+      List<Person> tmp = LoadUsers();
+      for(int j = 0; j < tmp.Count; ++j) {
+        Person i = tmp[j];
+        if (user is Seller && i is Seller) {
+          Seller a = (Seller)user;
+          Seller b = (Seller)i;
+          if (a.MyAccount.Id == b.MyAccount.Id) {
+            tmp[j] = user;
+            break;
+          }
+        } else if (user is Buyer && i is Buyer) {
+          Buyer a = (Buyer)user;
+          Buyer b = (Buyer)i;
+          if (a.MyAccount.Id == b.MyAccount.Id) {
+            tmp[j] = user;
+            break;
+          }
+        }
+      }
+      SaveAllUsers(tmp);
     }
 
     public List<Seller> LoadSellers() {
@@ -155,7 +188,6 @@ namespace OnlineShopping {
       while(true) {
         choiceScreen(new string[] {
         "View all listings",
-        "View choosen listing info",
         "View Cart",
         "Checkout",
         "Change account info",
@@ -163,27 +195,24 @@ namespace OnlineShopping {
         "Exit"
         });
 
-        int choice = getChoice(1, 7);
-        if(choice == 7) { 
-          break; 
+        int choice = getChoice(1, 6);
+        if(choice == 6) { 
+          Main();
         }
         switch (choice) {
           case 1:
             user.ViewAllListing(cat);
             break;
           case 2:
-            //TODO
-            break;
-          case 3:
             user.ViewMyCart();
             break;
-          case 4:
+          case 3:
             //TODO
             break;
-          case 5:
+          case 4:
             user.UpdateAccountInfo(cat);
             break;
-          case 6:
+          case 5:
             //TODO
             break;
         }
@@ -206,7 +235,7 @@ namespace OnlineShopping {
 
         int choice = getChoice(1, 8);
         if(choice == 8){
-          break;
+          Main();
         }
         switch(choice){
           case 1 : 
@@ -237,12 +266,14 @@ namespace OnlineShopping {
     public static void Main() {
       Catalog cat = new Catalog();
       cat = LoadCatalog();
-      choiceScreen(new string[] {"logIn", "SignUp"});
-      int choice = getChoice(1, 2);
+      choiceScreen(new string[] {"logIn", "SignUp", "Exit System"});
+      int choice = getChoice(1, 3);
       if (choice == 1) {
         LogInPage(cat);
-      } else {
+      } else if (choice == 2) {
         SignUpPage(cat);
+      } else {
+        Environment.Exit(0);
       }
     }
   }
