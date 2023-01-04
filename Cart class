@@ -1,0 +1,105 @@
+using System;
+
+namespace OnlineShopping {
+  [Serializable]
+  class Cart {
+    int id;
+    int numberOfListing;
+    double totalPrice;
+    List<Listing> cart = new List<Listing>();
+    Dictionary<Listing, int> frequancy = new Dictionary<Listing, int>();
+    public Cart(int id) {
+      this.id = id;
+      this.numberOfListing = 0;
+      this.totalPrice = 0;
+    }
+
+    int searchForListing(Listing x) {
+      for (int i = 0; i < cart.Count; i++) {
+        if (x == cart[i]) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
+    public void AddToCart(Listing x, int quantity) {
+      foreach(var i in cart) {
+        if (i.Id == x.Id) {
+          i.Price += x.Price * quantity;
+          totalPrice += x.Price * quantity;
+          frequancy[i] += quantity;
+          return;
+        }
+      }
+      cart.Add(x);
+      numberOfListing += 1;
+      frequancy.Add(x, quantity);
+      totalPrice += x.Price * quantity;
+    }
+
+    public void RemoveFromCart(Listing x) {
+      if (searchForListing(x) != -1) {
+        cart.Remove(x);
+        frequancy[x] = 0;
+        numberOfListing -= 1;
+        totalPrice -= x.Price;
+      }
+    }
+
+    public void ViewCartInfo() { 
+      Console.WriteLine("Number Of Items : " + numberOfListing.ToString());
+      for (int i = 1; i <= numberOfListing; i++) {
+        Console.WriteLine(i.ToString() + "." + cart[i - 1].Name + " $" + cart[i - 1].Price * frequancy[cart[i - 1]] + " NO." + frequancy[cart[i - 1]]);
+      }
+      Console.WriteLine("Total Price is $" + totalPrice.ToString());
+      // back checkOut remove
+      Interface.choiceScreen(new string[] {"Remove item", "CheckOut", "Back"});
+      int choice = Interface.getChoice(1, 3);
+      if (choice == 1) {
+      LOOP:
+        Console.WriteLine("#Enter item number to be removed");
+        int newChoice = Convert.ToInt32(Console.ReadLine());
+        if (newChoice > numberOfListing || newChoice <= 0) {
+          Console.Write("Invalid listing number, ");
+          goto LOOP;
+        }
+        Console.WriteLine("#Enter quantity to be removed");
+        int quantity = Convert.ToInt32(Console.ReadLine());
+        while (quantity <= 0 || quantity > frequancy[cart[newChoice - 1]]) {
+          Console.WriteLine("Invalid quantity, Please Enter a valid one");
+          quantity = Convert.ToInt32(Console.ReadLine());
+        }
+        if (quantity == cart[newChoice - 1].NumberOfItems) {
+          frequancy[cart[newChoice - 1]] = 0;
+          totalPrice -= quantity * cart[newChoice - 1].Price;
+          numberOfListing--;
+          cart.Remove(cart[newChoice - 1]);
+        } else {
+          frequancy[cart[newChoice - 1]] -= quantity;
+          totalPrice -= quantity * cart[newChoice - 1].Price;
+          cart[newChoice - 1].NumberOfItems -= quantity;
+        }
+      } else if (choice == 2) {
+        // TODO
+      } else {
+        return;
+      }
+    }
+
+    public int Id {
+      set => id = value;
+      get => id;
+    }
+
+    public int NumberOfListing {
+      set => numberOfListing = value;
+      get => numberOfListing;
+    }
+
+    public double TotalPrice {
+      set => totalPrice = value;
+      get => totalPrice;
+    }
+  }
+}
