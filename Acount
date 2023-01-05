@@ -5,6 +5,7 @@ namespace OnlineShopping {
   [Serializable]
   class Address {
     string street, city, postalCode, country;
+
     public Address(string street, string city, string postalCode, string country) {
       this.street = street;
       this.city = city;
@@ -13,44 +14,31 @@ namespace OnlineShopping {
     }
 
     public string Street {
-      set {
-        street = value;
-      }
-      get {
-        return street;
-      }
+      set => street = value;
+      get => street;
     }
 
     public string City {
-      set {
-        city = value;
-      }
-      get {
-        return city;
-      }
+      set => city = value;
+      get => city;
     }
 
     public string PostalCode {
-      set {
-        postalCode = value;
-      }
-      get {
-        return postalCode;
-      }
+      set => postalCode = value;
+      get => postalCode;
     }
 
     public string Country {
-      set {
-        country = value;
-      }
-      get {
-        return country;
-      }
+      set => country = value;
+      get => country;
     }
   }
+
   [Serializable]
   class Account {
     string email, phoneNumber, password, accountType;
+    int id = 0;
+    static int cnt = 0;
     Address address;
     public Account(string email, string phoneNumber, string password, string accountType, string street, string city, string postalCode, string country) {
       this.email = email;
@@ -58,64 +46,40 @@ namespace OnlineShopping {
       this.password = password;
       this.accountType = accountType;
       this.address = new Address(street, city, postalCode, country);
+      id = ++cnt;
     }
-    
-    // public static Person LogIn(string email, string password) {
-    //   if (!File.Exists("data")) return new Person("Empty");
-    //   FileStream fs = new FileStream("data", FileMode.Open);
-    //   BinaryFormatter f = new BinaryFormatter();
-    //   while (fs.Position < fs.Length) {
-    //     Person
-    //   }
-    //   return new Person("Empty");
-    // }
 
     public string Email {
-      set {
-        email = value;
-      }
-      get {
-        return email;
-      }
+      set => email = value;
+      get => email;
     }
 
     public string PhoneNumber {
-      set {
-        phoneNumber = value;
-      }
-      get {
-        return phoneNumber;
-      }
+      set => phoneNumber = value;
+      get => phoneNumber;
     }
 
     public string Password {
-      set {
-        password = value;
-      }
-      get {
-        return password;
-      }
+      set => password = value;
+      get => password;
     }
 
     public string AccountType {
-      set{
-        accountType = value;
-      }
-      get {
-        return accountType;
-      }
+      // set should not be accessed
+      get => accountType;
     }
 
     public Address Address {
-      set {
-        address = value;
-      }
-      get {
-        return address;
-      }
+      set => address = value;
+      get => address;
     }
 
+    public int Id {
+      set => id = value;
+      get => id;
+    }
   }
+
   [Serializable]
   class Person {
     string name;
@@ -124,12 +88,8 @@ namespace OnlineShopping {
     }
 
     public string Name {
-      set {
-        name = value;
-      }
-      get {
-        return name;
-      }
+      set => name = value;
+      get => name;
     }
   }
 
@@ -137,14 +97,25 @@ namespace OnlineShopping {
   class Seller : Person {
     string storeName;
     List<Listing> Listings = new List<Listing>();
-    static List<Listing> AllListings = new List<Listing>();
+    Dictionary<Buyer, List<Listing>> sold = new Dictionary<Buyer, List<Listing>> ();
     Account myAccount;
 
     public Seller(string storeName, string name, string email, string phoneNumber, string password, string accountType, string street, string city, string postalCode, string country) : base(name) {
       this.storeName = storeName;
       myAccount = new Account(email, phoneNumber, password, accountType, street, city, postalCode, country);
     }
-    
+
+    public Listing CreateListing() {
+      Console.WriteLine("#Enter listing info : name, description,  id, price, number of items");
+      string name = Console.ReadLine();
+      string description = Console.ReadLine();
+      string id = Console.ReadLine();
+      double price = Convert.ToDouble(Console.ReadLine());
+      int numberOfItems = Convert.ToInt32(Console.ReadLine());
+      Listing temp = new Listing(name, description, id, numberOfItems, price, this);
+      return temp;
+    }
+
     int searchForListing(Listing x) {
       for (int i = 0; i < Listings.Count; i++) {
         if (x == Listings[i]) {
@@ -154,43 +125,89 @@ namespace OnlineShopping {
       return -1;
     }
 
-    public void AddListing(Listing x) {
+    public void AddListing(Catalog cat) {
+      Listing x = CreateListing();
       Listings.Add(x);
-      AllListings.Add(x);
+      cat.AddListing(x);
+      Interface.SaveCatalog(cat);
+      Interface.UpdateUserFile(this);
     }
 
-    public void RemoveListing(Listing x) {
+    public void RemoveListing(Catalog cat) {
+      Listing x = CreateListing();
       if (searchForListing(x) != -1) {
         Listings.Remove(x);
-        AllListings.Remove(x);
+        cat.RemoveListing(x);
+        Interface.SaveCatalog(cat);
+        Interface.UpdateUserFile(this);
       }
     }
 
-    public void UpdateListingInfo(Listing x) {
+    public void UpdateListingInfo(Catalog cat) {
+      Listing x = CreateListing();
       int index = searchForListing(x);
       if (index < 0) {
         Console.WriteLine("Listing Not Found");
         return;
       }
-      Console.WriteLine("Please enter what to update");
-      Interface.choiceScreen(new string[] {"Name", "Description", "Number Of Items", "Price"});
-      int choice = Interface.getChoice(1, 4);
-      Console.WriteLine("Enter new Data");
-      string? data = Console.ReadLine();
-      switch(choice) {
-        case 1:
-          Listings[index].Name = data!;
+      while (true) {
+        Console.WriteLine("Please enter what to update");
+        Interface.choiceScreen(new string[] {"Name", "Description", "Number Of Items", "Price", "Exit"});
+        int choice = Interface.getChoice(1, 5);
+        if (choice == 5)  {
           break;
-        case 2:
-          Listings[index].Description = data!;
-          break;
-        case 3:
-          Listings[index].NumberOfItems = Convert.ToInt32(data);
-          break;
-        case 4:
-          Listings[index].Price = Convert.ToInt32(data);
-          break;
+        }
+        Console.WriteLine("Enter new Data");
+        string? data = Console.ReadLine();
+        switch(choice) {
+          case 1:
+            Listings[index].Name = data!;
+            break;
+          case 2:
+            Listings[index].Description = data!;
+            break;
+          case 3:
+            Listings[index].NumberOfItems = Convert.ToInt32(data);
+            break;
+          case 4:
+            Listings[index].Price = Convert.ToInt32(data);
+            break;
+        }
       }
+      Interface.SaveCatalog(cat);
+      Interface.UpdateUserFile(this);
+    }
+
+    public void UpdateAccountInfo(Catalog cat) {
+      while (true) {
+        Console.WriteLine("Please enter what to update");
+        Interface.choiceScreen(new string[] {"Name", "Email", "Phone Numbre", "Store Name", "Password", "Exit"});
+        int choice = Interface.getChoice(1, 6);
+        if (choice == 6)  {
+          break;
+        }
+        Console.WriteLine("Enter new Data");
+        string? data = Console.ReadLine();
+        switch(choice) {
+          case 1:
+            this.Name = data!;
+            break;
+          case 2:
+            this.MyAccount.Email = data!;
+            break;
+          case 3:
+            this.MyAccount.PhoneNumber = data!;
+            break;
+          case 4:
+            this.StoreName = data!;
+            break;
+          case 5:
+            this.MyAccount.Password = data!;
+            break; 
+        }
+      }
+      Interface.SaveCatalog(cat);
+      Interface.UpdateUserFile(this);
     }
 
     public void ViewSellerListings() {
@@ -199,41 +216,93 @@ namespace OnlineShopping {
       }
     }
 
-    public static void ViewAllListings() {
-      for (int i = 0; i < AllListings.Count; i++) {
-        Console.WriteLine((i + 1).ToString() + "." + AllListings[i].Name + " $" + AllListings[i].Price.ToString() + " " + AllListings[i].CurSeller.Name);
-      }
+    public void ViewAllListing(Catalog cat) {
+      cat.ViewCatalog(this);
+    }
+
+    public string StoreName {
+      set => storeName = value;
+      get => storeName;
+    } 
+    
+    public Account MyAccount {
+      set => myAccount = value;
+      get => myAccount;
     }
   }
 
   [Serializable]
   class Buyer : Person {
-    string id;
     Account myAccount;
     Payment paymentInfo;
     Cart myCart;
-    Buyer(string id, string name, string email, string phoneNumber, string password, string accountType, string street, string city, string postalCode, string country) : base(name) {
-      this.id = id;
+    public Buyer(string name, string email, string phoneNumber, string password, string accountType, string street, string city, string postalCode, string country, string cardNumber, string pinCode) : base(name) {
       myAccount = new Account(email, phoneNumber, password, accountType, street, city, postalCode, country);
-      myCart = new Cart(id);
-      paymentInfo = new Payment("12332421", "3211");
+      myCart = new Cart(myAccount.Id);
+      paymentInfo = new Payment(cardNumber, pinCode, street, city, postalCode, country);
     }
-  
     // just like a black box we call a cart functions
-    public void AddToCart(Listing x) {
-      myCart.AddToCart(x);
+    public void AddToCart(Listing x, int quantity) {
+      myCart.AddToCart(x, quantity);
+      Interface.UpdateUserFile(this);
     }
 
     public void RemoveFromCart(Listing x) {
       myCart.RemoveFromCart(x);
+      Interface.UpdateUserFile(this);
     }
 
     public void ViewMyCart() {
       myCart.ViewCartInfo();
     }
 
-    public static void ViewAllListings() {
-      Seller.ViewAllListings();
+    public void ViewAllListing(Catalog cat) {
+      cat.ViewCatalog(this);
+    }
+
+
+    public void UpdateAccountInfo(Catalog cat) {
+      while (true) {
+        Console.WriteLine("Please enter what to update");
+        Interface.choiceScreen(new string[] {"Name", "Email", "Phone Numbre", "Password", "Back"});
+        int choice = Interface.getChoice(1, 5);
+        if (choice == 5)  {
+          break;
+        }
+        Console.WriteLine("Enter new Data");
+        string? data = Console.ReadLine();
+        switch(choice) {
+          case 1:
+            this.Name = data!;
+            break;
+          case 2:
+            this.MyAccount.Email = data!;
+            break;
+          case 3:
+            this.MyAccount.PhoneNumber = data!;
+            break;
+          case 4:
+            this.MyAccount.Password = data!;
+            break; 
+        }
+      }
+      Interface.UpdateUserFile(this);
+      Interface.SaveCatalog(cat);
+    }
+
+    public Account MyAccount {
+      set => myAccount = value;
+      get => myAccount;
+    }
+
+    public Payment PaymentInfo {
+      set => paymentInfo = value;
+      get => paymentInfo;
+    }
+
+    public Cart MyCart {
+      set => myCart = value;
+      get => myCart;
     }
   }
 }
