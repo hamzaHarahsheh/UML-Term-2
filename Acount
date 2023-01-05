@@ -74,12 +74,10 @@ namespace OnlineShopping {
       get => address;
     }
 
-
     public int Id {
       set => id = value;
       get => id;
     }
-
   }
 
   [Serializable]
@@ -99,8 +97,27 @@ namespace OnlineShopping {
   class Seller : Person {
     string storeName;
     List<Listing> Listings = new List<Listing>();
-    Dictionary<Buyer, List<Listing>> sold = new Dictionary<Buyer, List<Listing>> ();
+    Dictionary<Buyer, List<Tuple<Listing, int>>> sold = new Dictionary<Buyer, List<Tuple<Listing, int>>> ();
     Account myAccount;
+
+    public static bool operator==(Seller lhs, Seller rhs) {
+      return lhs.myAccount.Id == rhs.myAccount.Id;
+    }
+
+    public static bool operator!=(Seller lhs, Seller rhs) {
+      return lhs.myAccount.Id != rhs.myAccount.Id;
+    }
+
+    public override bool Equals(Object obj) {
+      if (obj == null) return false;
+      if (this.GetType() != obj.GetType()) return false;
+      Seller b = (Seller)obj;
+      return this.myAccount.Id == b.myAccount.Id;
+    }
+
+    public override int GetHashCode() {
+      return myAccount.Id;
+    }
 
     public Seller(string storeName, string name, string email, string phoneNumber, string password, string accountType, string street, string city, string postalCode, string country) : base(name) {
       this.storeName = storeName;
@@ -118,9 +135,9 @@ namespace OnlineShopping {
       return temp;
     }
 
-    int searchForListing(Listing x) {
+    int searchForListing(string Id) {
       for (int i = 0; i < Listings.Count; i++) {
-        if (x == Listings[i]) {
+        if (Id == Listings[i].Id) {
           return i;
         }
       }
@@ -133,24 +150,25 @@ namespace OnlineShopping {
       cat.AddListing(x);
       Interface.SaveCatalog(cat);
       Interface.UpdateUserFile(this);
-
     }
 
     public void RemoveListing(Catalog cat) {
-      Listing x = CreateListing();
-      if (searchForListing(x) != -1) {
-        Listings.Remove(x);
-        cat.RemoveListing(x);
-
-        Interface.SaveCatalog(cat);
-        Interface.UpdateUserFile(this);
-
+      string []a = new string[Listings.Count];
+      for (int i = 0; i < Listings.Count; ++i) {
+        a[i] = Listings[i].Name;
       }
+      Interface.choiceScreen(a);
+      int choice = Interface.getChoice(1, Listings.Count);
+      cat.RemoveListing(Listings[choice - 1]);
+      Listings.RemoveAt(choice - 1);
+      Interface.SaveCatalog(cat);
+      Interface.UpdateUserFile(this);
     }
 
     public void UpdateListingInfo(Catalog cat) {
-      Listing x = CreateListing();
-      int index = searchForListing(x);
+      Console.WriteLine("Enter the id of the item to be updated");
+      string ID = Console.ReadLine();
+      int index = searchForListing(ID);
       if (index < 0) {
         Console.WriteLine("Listing Not Found");
         return;
@@ -159,7 +177,6 @@ namespace OnlineShopping {
         Console.WriteLine("Please enter what to update");
         Interface.choiceScreen(new string[] {"Name", "Description", "Number Of Items", "Price", "Exit"});
         int choice = Interface.getChoice(1, 5);
-
         if (choice == 5)  {
           break;
         }
@@ -180,9 +197,8 @@ namespace OnlineShopping {
             break;
         }
       }
-      Interface.SaveCatalog(cat);
       Interface.UpdateUserFile(this);
-
+      Interface.SaveCatalog(cat);
     }
 
     public void UpdateAccountInfo(Catalog cat) {
@@ -190,8 +206,6 @@ namespace OnlineShopping {
         Console.WriteLine("Please enter what to update");
         Interface.choiceScreen(new string[] {"Name", "Email", "Phone Numbre", "Store Name", "Password", "Exit"});
         int choice = Interface.getChoice(1, 6);
-
-
         if (choice == 6)  {
           break;
         }
@@ -217,7 +231,22 @@ namespace OnlineShopping {
       }
       Interface.SaveCatalog(cat);
       Interface.UpdateUserFile(this);
+    }
 
+    public void ViewSoldListing() {
+      bool flag = false;
+      foreach(KeyValuePair<Buyer, List<Tuple<Listing, int>>> data in sold) {
+        flag = true;
+        Console.WriteLine("****************");
+        Console.WriteLine(data.Key.Name);
+        foreach(var i in data.Value) {
+          Console.WriteLine(i.Item1.Name + " $" + i.Item1.Price * i.Item2 + " NO." + i.Item2.ToString()) ;
+        }
+        Console.WriteLine("****************");
+      }
+      if (!flag) {
+        Console.WriteLine("No sold items yet");
+      } 
     }
 
     public void ViewSellerListings() {
@@ -228,7 +257,13 @@ namespace OnlineShopping {
 
     public void ViewAllListing(Catalog cat) {
       cat.ViewCatalog(this);
+      Interface.UpdateUserFile(this);
+      Interface.SaveCatalog(cat);
+    }
 
+    public Dictionary<Buyer, List<Tuple<Listing, int>>> Sold {
+      set => sold = value;
+      get => sold;
     }
 
     public string StoreName {
@@ -240,6 +275,7 @@ namespace OnlineShopping {
       set => myAccount = value;
       get => myAccount;
     }
+
   }
 
   [Serializable]
@@ -247,10 +283,29 @@ namespace OnlineShopping {
     Account myAccount;
     Payment paymentInfo;
     Cart myCart;
+
+    public static bool operator==(Buyer lhs, Buyer rhs) {
+      return lhs.myAccount.Id == rhs.myAccount.Id;
+    }
+
+    public static bool operator!=(Buyer lhs, Buyer rhs) {
+      return lhs.myAccount.Id != rhs.myAccount.Id;
+    }
+
+    public override bool Equals(Object obj) {
+      if (obj == null) return false;
+      if (this.GetType() != obj.GetType()) return false;
+      Buyer b = (Buyer)obj;
+      return this.myAccount.Id == b.myAccount.Id;
+    }
+
+    public override int GetHashCode() {
+      return myAccount.Id;
+    }
+
     public Buyer(string name, string email, string phoneNumber, string password, string accountType, string street, string city, string postalCode, string country, string cardNumber, string pinCode) : base(name) {
       myAccount = new Account(email, phoneNumber, password, accountType, street, city, postalCode, country);
       myCart = new Cart(myAccount.Id);
-      
       paymentInfo = new Payment(cardNumber, pinCode, street, city, postalCode, country);
     }
     // just like a black box we call a cart functions
@@ -264,21 +319,24 @@ namespace OnlineShopping {
       Interface.UpdateUserFile(this);
     }
 
-    public void ViewMyCart() {
-      myCart.ViewCartInfo();
+    public void ViewMyCart(Catalog cat) {
+      myCart.ViewCartInfo(this, cat);
     }
 
     public void ViewAllListing(Catalog cat) {
       cat.ViewCatalog(this);
     }
 
+    public void DoCheckOut(Catalog cat) {
+      CheckOut receipt = new CheckOut();
+      receipt.DoCheckOut(this, cat);
+    }
 
     public void UpdateAccountInfo(Catalog cat) {
       while (true) {
         Console.WriteLine("Please enter what to update");
         Interface.choiceScreen(new string[] {"Name", "Email", "Phone Numbre", "Password", "Back"});
         int choice = Interface.getChoice(1, 5);
-
         if (choice == 5)  {
           break;
         }
@@ -301,7 +359,6 @@ namespace OnlineShopping {
       }
       Interface.UpdateUserFile(this);
       Interface.SaveCatalog(cat);
-
     }
 
     public Account MyAccount {
