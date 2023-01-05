@@ -147,6 +147,7 @@ namespace OnlineShopping {
         BuyerHomePage((Buyer)user, cat);
       }
     }
+    
     public static void SignUpPage(Catalog cat) {
       choiceScreen(new string[] { "Signup as a Seller", "Signup as a Buyer" });
       int choice = getChoice(1, 2);
@@ -192,7 +193,7 @@ namespace OnlineShopping {
         "Checkout",
         "Change account info",
         "Search for listing",
-        "Exit"
+        "Logout"
         });
 
         int choice = getChoice(1, 6);
@@ -204,10 +205,10 @@ namespace OnlineShopping {
             user.ViewAllListing(cat);
             break;
           case 2:
-            user.ViewMyCart();
+            user.ViewMyCart(cat);
             break;
           case 3:
-            //TODO
+            user.DoCheckOut(cat);
             break;
           case 4:
             user.UpdateAccountInfo(cat);
@@ -254,7 +255,7 @@ namespace OnlineShopping {
             user.ViewAllListing(cat);
             break;
           case 6 : 
-            //TODO
+            user.ViewSoldListing();
             break;
           case 7 : 
             user.UpdateAccountInfo(cat);
