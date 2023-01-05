@@ -26,7 +26,6 @@ namespace OnlineShopping {
     public void AddToCart(Listing x, int quantity) {
       foreach(var i in cart) {
         if (i.Id == x.Id) {
-          i.Price += x.Price * quantity;
           totalPrice += x.Price * quantity;
           frequancy[i] += quantity;
           return;
@@ -34,22 +33,28 @@ namespace OnlineShopping {
       }
       cart.Add(x);
       numberOfListing += 1;
-      frequancy.Add(x, quantity);
+      if (frequancy.ContainsKey(x)) frequancy[x] += quantity;
+      else  frequancy.Add(x, quantity);
       totalPrice += x.Price * quantity;
     }
 
     public void RemoveFromCart(Listing x) {
-      if (searchForListing(x) != -1) {
-        cart.Remove(x);
+      int index = searchForListing(x);
+      if (index != -1) {
+        cart.RemoveAt(index);
+        totalPrice -= x.Price * frequancy[x];
+        numberOfListing--;
         frequancy[x] = 0;
-        numberOfListing -= 1;
-        totalPrice -= x.Price;
       }
     }
 
-    public void ViewCartInfo() { 
+    public int GetQuantity(Listing x) {
+      return frequancy[x];
+    }
+
+    public void ViewCartInfo(Buyer b, Catalog cat) { 
       Console.WriteLine("Number Of Items : " + numberOfListing.ToString());
-      for (int i = 1; i <= numberOfListing; i++) {
+      for (int i = 1; i <= cart.Count; i++) {
         Console.WriteLine(i.ToString() + "." + cart[i - 1].Name + " $" + cart[i - 1].Price * frequancy[cart[i - 1]] + " NO." + frequancy[cart[i - 1]]);
       }
       Console.WriteLine("Total Price is $" + totalPrice.ToString());
@@ -70,21 +75,24 @@ namespace OnlineShopping {
           Console.WriteLine("Invalid quantity, Please Enter a valid one");
           quantity = Convert.ToInt32(Console.ReadLine());
         }
-        if (quantity == cart[newChoice - 1].NumberOfItems) {
+        if (quantity == frequancy[cart[newChoice - 1]]) {
           frequancy[cart[newChoice - 1]] = 0;
           totalPrice -= quantity * cart[newChoice - 1].Price;
           numberOfListing--;
-          cart.Remove(cart[newChoice - 1]);
+          cart.RemoveAt(newChoice - 1);
         } else {
           frequancy[cart[newChoice - 1]] -= quantity;
           totalPrice -= quantity * cart[newChoice - 1].Price;
-          cart[newChoice - 1].NumberOfItems -= quantity;
         }
+        Interface.UpdateUserFile(b);
+        Interface.SaveCatalog(cat);
+        ViewCartInfo(b, cat);
       } else if (choice == 2) {
-        // TODO
+        b.DoCheckOut(cat);
       } else {
         return;
       }
+
     }
 
     public int Id {
@@ -101,5 +109,15 @@ namespace OnlineShopping {
       set => totalPrice = value;
       get => totalPrice;
     }
+
+    public List<Listing> curCart {
+      set => cart = value; 
+      get => cart;
+    }
+
+    public Dictionary<Listing, int> Frequancy {
+      set => frequancy = value;
+      get => frequancy;
+    } 
   }
 }
