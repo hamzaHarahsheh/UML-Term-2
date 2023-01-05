@@ -37,6 +37,8 @@ namespace OnlineShopping {
   [Serializable]
   class Account {
     string email, phoneNumber, password, accountType;
+    int id = 0;
+    static int cnt = 0;
     Address address;
     public Account(string email, string phoneNumber, string password, string accountType, string street, string city, string postalCode, string country) {
       this.email = email;
@@ -44,6 +46,7 @@ namespace OnlineShopping {
       this.password = password;
       this.accountType = accountType;
       this.address = new Address(street, city, postalCode, country);
+      id = ++cnt;
     }
 
     public string Email {
@@ -70,6 +73,13 @@ namespace OnlineShopping {
       set => address = value;
       get => address;
     }
+
+
+    public int Id {
+      set => id = value;
+      get => id;
+    }
+
   }
 
   [Serializable]
@@ -121,6 +131,9 @@ namespace OnlineShopping {
       Listing x = CreateListing();
       Listings.Add(x);
       cat.AddListing(x);
+      Interface.SaveCatalog(cat);
+      Interface.UpdateUserFile(this);
+
     }
 
     public void RemoveListing(Catalog cat) {
@@ -128,6 +141,10 @@ namespace OnlineShopping {
       if (searchForListing(x) != -1) {
         Listings.Remove(x);
         cat.RemoveListing(x);
+
+        Interface.SaveCatalog(cat);
+        Interface.UpdateUserFile(this);
+
       }
     }
 
@@ -141,8 +158,8 @@ namespace OnlineShopping {
       while (true) {
         Console.WriteLine("Please enter what to update");
         Interface.choiceScreen(new string[] {"Name", "Description", "Number Of Items", "Price", "Exit"});
-        int choice = -1;
-        Interface.getChoice(1, 5);
+        int choice = Interface.getChoice(1, 5);
+
         if (choice == 5)  {
           break;
         }
@@ -163,14 +180,18 @@ namespace OnlineShopping {
             break;
         }
       }
+      Interface.SaveCatalog(cat);
+      Interface.UpdateUserFile(this);
+
     }
 
     public void UpdateAccountInfo(Catalog cat) {
       while (true) {
         Console.WriteLine("Please enter what to update");
         Interface.choiceScreen(new string[] {"Name", "Email", "Phone Numbre", "Store Name", "Password", "Exit"});
-        int choice = -1;
-        Interface.getChoice(1, 6);
+        int choice = Interface.getChoice(1, 6);
+
+
         if (choice == 6)  {
           break;
         }
@@ -194,7 +215,9 @@ namespace OnlineShopping {
             break; 
         }
       }
-      // TODO: SAVE CHANGES
+      Interface.SaveCatalog(cat);
+      Interface.UpdateUserFile(this);
+
     }
 
     public void ViewSellerListings() {
@@ -204,7 +227,8 @@ namespace OnlineShopping {
     }
 
     public void ViewAllListing(Catalog cat) {
-      cat.ViewCatalog();
+      cat.ViewCatalog(this);
+
     }
 
     public string StoreName {
@@ -220,24 +244,24 @@ namespace OnlineShopping {
 
   [Serializable]
   class Buyer : Person {
-    int id;
     Account myAccount;
     Payment paymentInfo;
     Cart myCart;
-    static int cnt = 0;
     public Buyer(string name, string email, string phoneNumber, string password, string accountType, string street, string city, string postalCode, string country, string cardNumber, string pinCode) : base(name) {
-      this.id = ++cnt;
       myAccount = new Account(email, phoneNumber, password, accountType, street, city, postalCode, country);
-      myCart = new Cart(id);
+      myCart = new Cart(myAccount.Id);
+      
       paymentInfo = new Payment(cardNumber, pinCode, street, city, postalCode, country);
     }
     // just like a black box we call a cart functions
-    public void AddToCart(Listing x) {
-      myCart.AddToCart(x);
+    public void AddToCart(Listing x, int quantity) {
+      myCart.AddToCart(x, quantity);
+      Interface.UpdateUserFile(this);
     }
 
     public void RemoveFromCart(Listing x) {
       myCart.RemoveFromCart(x);
+      Interface.UpdateUserFile(this);
     }
 
     public void ViewMyCart() {
@@ -245,18 +269,16 @@ namespace OnlineShopping {
     }
 
     public void ViewAllListing(Catalog cat) {
-      cat.ViewCatalog();
+      cat.ViewCatalog(this);
     }
-    
-    public void ViewChoosenListing() {
-    }
+
 
     public void UpdateAccountInfo(Catalog cat) {
       while (true) {
         Console.WriteLine("Please enter what to update");
-        Interface.choiceScreen(new string[] {"Name", "Email", "Phone Numbre", "Password", "Exit"});
-        int choice = -1;
-        Interface.getChoice(1, 5);
+        Interface.choiceScreen(new string[] {"Name", "Email", "Phone Numbre", "Password", "Back"});
+        int choice = Interface.getChoice(1, 5);
+
         if (choice == 5)  {
           break;
         }
@@ -277,12 +299,9 @@ namespace OnlineShopping {
             break; 
         }
       }
-      //TODO SAVE CHANGES
-    }
+      Interface.UpdateUserFile(this);
+      Interface.SaveCatalog(cat);
 
-    public int Id {
-      set => id = value;
-      get => id;
     }
 
     public Account MyAccount {
