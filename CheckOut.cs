@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 
-namespace OnlineShopping{
+namespace OnlineShopping
+{
   [Serializable]
   class CheckOut {
     int id;
@@ -21,15 +23,35 @@ namespace OnlineShopping{
     }
 
     public void DoCheckOut(Buyer b, Catalog cat) {
-      if (b.MyCart.NumberOfListing == 0) {
+      if (b.MyCart.curCart.Count == 0) {
         Console.WriteLine("Cart is Empty");
         return;
       }
+            Console.WriteLine("#Shipping Address: ");
+            Interface.choiceScreen(new String[] { "Default shipping address", "Add new address" });
+            int choice = Interface.getChoice(1,2);
+            if (choice == 2)
+            {
+                Console.WriteLine("#Add new address: (Country, City, Street, PostalCode)");
+                Interface.ReadString();
+                Interface.ReadString();
+                Interface.ReadString();
+                Interface.ReadString();
+            }
+            Console.WriteLine("#Enter your payment info: (CardNumber, PinCode)");
+            string cardNumber = Interface.ReadString();
+            string pinCode = Interface.ReadString();
+            if(b.PaymentInfo.CardNumber != cardNumber || b.PaymentInfo.PinCode != pinCode)
+            {
+                Console.WriteLine("Incorret cardNumber or pinCode");
+                return;
+            } 
 
-      if (b.PaymentInfo.Balance < b.MyCart.TotalPrice) {
+        if (b.PaymentInfo.Balance < b.MyCart.TotalPrice) {
         Console.WriteLine("You don't have enough money");
         return;
       }
+      
       totalAmount = b.MyCart.TotalPrice;
       b.PaymentInfo.Balance -= totalAmount;
       int cnt = b.MyCart.curCart.Count;
@@ -56,8 +78,11 @@ namespace OnlineShopping{
           firstListing.Add(t);
           b.MyCart.curCart[0].CurSeller.Sold.Add(b, firstListing);
         }
-
         b.MyCart.Frequancy[b.MyCart.curCart[0]] = 0;
+        if (b.MyCart.curCart[0].NumberOfItems == 0) {
+          b.MyCart.curCart[0].CurSeller.MyListings.Remove(b.MyCart.curCart[0]);
+          cat.RemoveListing(b.MyCart.curCart[0]);
+        }
         Interface.UpdateUserFile(b.MyCart.curCart[0].CurSeller);
         b.RemoveFromCart(b.MyCart.curCart[0]);
       }
