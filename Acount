@@ -204,7 +204,7 @@ namespace OnlineShopping {
     public void UpdateAccountInfo(Catalog cat) {
       while (true) {
         Console.WriteLine("Please enter what to update");
-        Interface.choiceScreen(new string[] {"Name", "Email", "Phone Numbre", "Store Name", "Password", "Exit"});
+        Interface.choiceScreen(new string[] {"Name", "Email", "Phone Number", "Store Name", "Password", "Exit"});
         int choice = Interface.getChoice(1, 6);
         if (choice == 6)  {
           break;
